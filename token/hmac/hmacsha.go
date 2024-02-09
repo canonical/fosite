@@ -165,6 +165,7 @@ func (c *HMACStrategy) Signature(token string) string {
 	return sig
 }
 
+// GenerateHMACForString returns an HMAC for a string
 func (c *HMACStrategy) GenerateHMACForString(ctx context.Context, text string) (string, error) {
 	var signingKey [32]byte
 
