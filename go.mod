@@ -1,6 +1,6 @@
 module github.com/ory/fosite
 
-replace github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.1+incompatible
+replace github.com/dgrijalva/jwt-go => github.com/form3tech-oss/jwt-go v3.2.5+incompatible
 
 replace github.com/gobuffalo/packr => github.com/gobuffalo/packr v1.30.1
 
