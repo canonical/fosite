@@ -76,6 +76,7 @@ func ComposeAllEnabled(config *fosite.Config, storage interface{}, key interface
 			Signer:                     &jwt.DefaultSigner{GetPrivateKey: keyGetter},
 		},
 		OAuth2AuthorizeExplicitFactory,
+		Oauth2AuthorizeExplicitTokenFactory,
 		OAuth2AuthorizeImplicitFactory,
 		OAuth2ClientCredentialsGrantFactory,
 		OAuth2RefreshTokenGrantFactory,
@@ -91,6 +92,7 @@ func ComposeAllEnabled(config *fosite.Config, storage interface{}, key interface
 		OAuth2TokenRevocationFactory,
 
 		RFC8628DeviceFactory,
+		RFC8628DeviceAuthorizationTokenFactory,
 
 		OAuth2PKCEFactory,
 		PushedAuthorizeHandlerFactory,
