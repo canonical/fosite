@@ -217,10 +217,13 @@ func TestDeviceUserCode_PopulateTokenEndpointResponse(t *testing.T) {
 						RefreshTokenScopes:       []string{"offline"},
 					}
 					h = oauth2.GenericCodeTokenEndpointHandler{
-						CodeTokenEndpointHandler: &DeviceTokenHandler{
+						AccessRequestValidator: &DeviceAccessRequestValidator{},
+						CodeHandler: &DeviceCodeHandler{
 							DeviceRateLimitStrategy: strategy,
 							DeviceCodeStrategy:      strategy,
-							DeviceCodeStorage:       store,
+						},
+						SessionHandler: &DeviceSessionHandler{
+							DeviceCodeStorage: store,
 						},
 						AccessTokenStrategy:    strategy.CoreStrategy,
 						RefreshTokenStrategy:   strategy.CoreStrategy,
@@ -262,10 +265,13 @@ func TestDeviceUserCode_HandleTokenEndpointRequest(t *testing.T) {
 			store := storage.NewMemoryStore()
 
 			h := oauth2.GenericCodeTokenEndpointHandler{
-				CodeTokenEndpointHandler: &DeviceTokenHandler{
+				AccessRequestValidator: &DeviceAccessRequestValidator{},
+				CodeHandler: &DeviceCodeHandler{
 					DeviceRateLimitStrategy: strategy,
-					DeviceCodeStrategy:      strategy.RFC8628CodeStrategy,
-					DeviceCodeStorage:       store,
+					DeviceCodeStrategy:      strategy,
+				},
+				SessionHandler: &DeviceSessionHandler{
+					DeviceCodeStorage: store,
 				},
 				CoreStorage:          store,
 				AccessTokenStrategy:  strategy.CoreStrategy,
@@ -278,10 +284,10 @@ func TestDeviceUserCode_HandleTokenEndpointRequest(t *testing.T) {
 			}
 			for i, c := range []struct {
 				areq        *fosite.AccessRequest
-				authreq     *fosite.DeviceUserRequest
+				authreq     *fosite.DeviceRequest
 				description string
-				setup       func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceUserRequest)
-				check       func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceUserRequest)
+				setup       func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceRequest)
+				check       func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceRequest)
 				expectErr   error
 			}{
 				{
@@ -313,7 +319,7 @@ func TestDeviceUserCode_HandleTokenEndpointRequest(t *testing.T) {
 						},
 					},
 					description: "should fail because device code could not be retrieved",
-					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceUserRequest) {
+					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceRequest) {
 						deviceCode, _, err := strategy.GenerateDeviceCode(context.TODO())
 						require.NoError(t, err)
 						areq.Form = url.Values{"device_code": {deviceCode}}
@@ -342,14 +348,14 @@ func TestDeviceUserCode_HandleTokenEndpointRequest(t *testing.T) {
 							RequestedAt: time.Now().UTC(),
 						},
 					},
-					authreq: &fosite.DeviceUserRequest{
+					authreq: &fosite.DeviceRequest{
 						Request: fosite.Request{
 							Client:         &fosite.DefaultClient{ID: "bar"},
 							RequestedScope: fosite.Arguments{"a", "b"},
 						},
 					},
 					description: "should fail because client mismatch",
-					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceUserRequest) {
+					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceRequest) {
 						token, signature, err := strategy.GenerateDeviceCode(context.TODO())
 						require.NoError(t, err)
 						areq.Form = url.Values{"device_code": {token}}
@@ -367,7 +373,7 @@ func TestDeviceUserCode_HandleTokenEndpointRequest(t *testing.T) {
 							RequestedAt: time.Now().UTC(),
 						},
 					},
-					authreq: &fosite.DeviceUserRequest{
+					authreq: &fosite.DeviceRequest{
 						Request: fosite.Request{
 							Client:         &fosite.DefaultClient{ID: "foo", GrantTypes: []string{"urn:ietf:params:oauth:grant-type:device_code"}},
 							Session:        &fosite.DefaultSession{},
@@ -376,7 +382,7 @@ func TestDeviceUserCode_HandleTokenEndpointRequest(t *testing.T) {
 						},
 					},
 					description: "should pass",
-					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceUserRequest) {
+					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceRequest) {
 						token, signature, err := strategy.GenerateDeviceCode(context.TODO())
 						require.NoError(t, err)
 
@@ -397,11 +403,11 @@ func TestDeviceUserCode_HandleTokenEndpointRequest(t *testing.T) {
 							RequestedAt:  time.Now().UTC(),
 						},
 					},
-					check: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceUserRequest) {
+					check: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceRequest) {
 						assert.Equal(t, time.Now().Add(time.Minute).UTC().Round(time.Second), areq.GetSession().GetExpiresAt(fosite.AccessToken))
 						assert.Equal(t, time.Now().Add(time.Minute).UTC().Round(time.Second), areq.GetSession().GetExpiresAt(fosite.RefreshToken))
 					},
-					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceUserRequest) {
+					setup: func(t *testing.T, areq *fosite.AccessRequest, authreq *fosite.DeviceRequest) {
 						code, sig, err := strategy.GenerateDeviceCode(context.TODO())
 						require.NoError(t, err)
 						areq.Form.Add("device_code", code)
@@ -656,9 +662,12 @@ func TestDeviceUserCodeTransactional_HandleTokenEndpointRequest(t *testing.T) {
 			testCase.setup()
 
 			handler := oauth2.GenericCodeTokenEndpointHandler{
-				CodeTokenEndpointHandler: &DeviceTokenHandler{
+				AccessRequestValidator: &DeviceAccessRequestValidator{},
+				CodeHandler: &DeviceCodeHandler{
 					DeviceRateLimitStrategy: mockDeviceRateLimitStrategy,
 					DeviceCodeStrategy:      &deviceStrategy,
+				},
+				SessionHandler: &DeviceSessionHandler{
 					DeviceCodeStorage: deviceTransactionalStore{
 						mockTransactional,
 						mockDeviceCodeStore,

@@ -18,31 +18,46 @@ import (
 	"github.com/ory/fosite"
 )
 
-// CodeTokenEndpointHandler handles the differences between Authorize code grant and extended grant types.
-type CodeTokenEndpointHandler interface {
-	// ValidateGrantTypes validates the authorization grant type.
-	ValidateGrantTypes(ctx context.Context, requester fosite.AccessRequester) error
+// AccessRequestValidator handles various validations in the access request handling.
+type AccessRequestValidator interface {
+	// ValidateRequest validates if the access request should be handled.
+	ValidateRequest(requester fosite.AccessRequester) bool
 
-	// ValidateCode validates the code used in the authorization flow.
-	ValidateCode(ctx context.Context, requester fosite.AccessRequester, code string) error
+	// ValidateClientAuth validates if the client authentication is required.
+	ValidateClientAuth(requester fosite.AccessRequester) bool
 
-	// GetCodeAndSession retrieves the code, the code signature, and the request session.
-	GetCodeAndSession(ctx context.Context, requester fosite.AccessRequester) (code string, signature string, authorizeRequest fosite.Requester, err error)
+	// ValidateGrantTypes validates the grant types in the access request.
+	ValidateGrantTypes(requester fosite.AccessRequester) error
 
-	// InvalidateSession invalidates the code once the code is used.
-	InvalidateSession(ctx context.Context, signature string) error
-
-	// CanSkipClientAuth indicates if client authentication can be skipped. By default, it MUST be false, unless you are
-	// implementing extension grant type, which allows unauthenticated client. CanSkipClientAuth must be called
-	// before HandleTokenEndpointRequest to decide, if AccessRequester will contain authenticated client.
-	CanSkipClientAuth(ctx context.Context, requester fosite.AccessRequester) bool
-
-	// CanHandleTokenEndpointRequest indicates if GenericCodeTokenEndpointHandler can handle this request or not.
-	CanHandleTokenEndpointRequest(ctx context.Context, requester fosite.AccessRequester) bool
+	// ValidateRedirectURI validates the redirect uri in the access request.
+	ValidateRedirectURI(accessRequester fosite.AccessRequester, authorizeRequester fosite.Requester) error
 }
 
+// CodeHandler handles authorization/device code related operations.
+type CodeHandler interface {
+	// Code fetches the code and code signature.
+	Code(ctx context.Context, requester fosite.AccessRequester) (code string, signature string, err error)
+
+	// ValidateCode validates the code.
+	ValidateCode(ctx context.Context, requester fosite.AccessRequester, code string) error
+}
+
+// SessionHandler handles session-related operations.
+type SessionHandler interface {
+	// Session fetches the authorized request.
+	Session(ctx context.Context, requester fosite.AccessRequester, codeSignature string) (fosite.Requester, error)
+
+	// InvalidateSession invalidates the code and session.
+	InvalidateSession(ctx context.Context, codeSignature string) error
+}
+
+// GenericCodeTokenEndpointHandler is a token response handler for
+// - the Authorize Code grant using the explicit grant type as defined in https://tools.ietf.org/html/rfc6749#section-4.1
+// - the Device Authorization Grant as defined in https://www.rfc-editor.org/rfc/rfc8628
 type GenericCodeTokenEndpointHandler struct {
-	CodeTokenEndpointHandler
+	AccessRequestValidator
+	CodeHandler
+	SessionHandler
 
 	AccessTokenStrategy    AccessTokenStrategy
 	RefreshTokenStrategy   RefreshTokenStrategy
@@ -60,7 +75,12 @@ func (c *GenericCodeTokenEndpointHandler) PopulateTokenEndpointResponse(ctx cont
 		return errorsx.WithStack(fosite.ErrUnknownRequest)
 	}
 
-	code, signature, ar, err := c.GetCodeAndSession(ctx, requester)
+	code, signature, err := c.Code(ctx, requester)
+	if err != nil {
+		return err
+	}
+
+	ar, err := c.Session(ctx, requester, signature)
 	if err != nil {
 		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
 	}
@@ -137,30 +157,21 @@ func (c *GenericCodeTokenEndpointHandler) HandleTokenEndpointRequest(ctx context
 		return errorsx.WithStack(errorsx.WithStack(fosite.ErrUnknownRequest))
 	}
 
-	if err := c.ValidateGrantTypes(ctx, requester); err != nil {
+	if err := c.ValidateGrantTypes(requester); err != nil {
 		return err
 	}
 
-	code, _, ar, err := c.GetCodeAndSession(ctx, requester)
+	code, signature, err := c.Code(ctx, requester)
 	if err != nil {
-		switch {
-		case errors.Is(err, fosite.ErrInvalidatedAuthorizeCode), errors.Is(err, fosite.ErrInvalidatedDeviceCode):
-			if ar == nil {
-				return fosite.ErrServerError.
-					WithHint("Misconfigured code lead to an error that prohibited the OAuth 2.0 Framework from processing this request.").
-					WithDebug("getCodeSession must return a value for \"fosite.Requester\" when returning \"ErrInvalidatedAuthorizeCode\" or \"ErrInvalidatedDeviceCode\".")
-			}
+		return err
+	}
 
-			return c.revokeTokens(ctx, requester.GetID())
-		case errors.Is(err, fosite.ErrAuthorizationPending):
-			return err
-		case errors.Is(err, fosite.ErrPollingRateLimited):
-			return errorsx.WithStack(err)
-		case errors.Is(err, fosite.ErrNotFound):
-			return errorsx.WithStack(fosite.ErrInvalidGrant.WithWrap(err).WithDebug(err.Error()))
-		default:
-			return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
-		}
+	ar, err := c.Session(ctx, requester, signature)
+	if ar != nil && err != nil && (errors.Is(err, fosite.ErrInvalidatedAuthorizeCode) || errors.Is(err, fosite.ErrInvalidatedDeviceCode)) {
+		return c.revokeTokens(ctx, requester.GetID())
+	}
+	if err != nil {
+		return err
 	}
 
 	if err = c.ValidateCode(ctx, requester, code); err != nil {
@@ -180,10 +191,8 @@ func (c *GenericCodeTokenEndpointHandler) HandleTokenEndpointRequest(ctx context
 		return errorsx.WithStack(fosite.ErrInvalidGrant.WithHint("The OAuth 2.0 Client ID from this request does not match the one from the authorize request."))
 	}
 
-	forcedRedirectURI := ar.GetRequestForm().Get("redirect_uri")
-	requestedRedirectURI := requester.GetRequestForm().Get("redirect_uri")
-	if forcedRedirectURI != "" && forcedRedirectURI != requestedRedirectURI {
-		return errorsx.WithStack(fosite.ErrInvalidGrant.WithHint("The \"redirect_uri\" from this request does not match the one from the authorize request."))
+	if err = c.ValidateRedirectURI(requester, ar); err != nil {
+		return err
 	}
 
 	// Checking of POST client_id skipped, because
@@ -204,11 +213,11 @@ func (c *GenericCodeTokenEndpointHandler) HandleTokenEndpointRequest(ctx context
 }
 
 func (c *GenericCodeTokenEndpointHandler) CanSkipClientAuth(ctx context.Context, requester fosite.AccessRequester) bool {
-	return c.CodeTokenEndpointHandler.CanSkipClientAuth(ctx, requester)
+	return c.ValidateClientAuth(requester)
 }
 
 func (c *GenericCodeTokenEndpointHandler) CanHandleTokenEndpointRequest(ctx context.Context, requester fosite.AccessRequester) bool {
-	return c.CodeTokenEndpointHandler.CanHandleTokenEndpointRequest(ctx, requester)
+	return c.ValidateRequest(requester)
 }
 
 func (c *GenericCodeTokenEndpointHandler) canIssueRefreshToken(ctx context.Context, requester fosite.Requester) bool {

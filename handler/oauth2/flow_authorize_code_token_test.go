@@ -208,9 +208,12 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 						RefreshTokenScopes:       []string{"offline"},
 					}
 					h = GenericCodeTokenEndpointHandler{
-						CodeTokenEndpointHandler: &AuthorizeExplicitGrantTokenHandler{
+						AccessRequestValidator: &AuthorizeExplicitGrantAccessRequestValidator{},
+						CodeHandler: &AuthorizeCodeHandler{
 							AuthorizeCodeStrategy: strategy,
-							AuthorizeCodeStorage:  store,
+						},
+						SessionHandler: &AuthorizeExplicitGrantSessionHandler{
+							AuthorizeCodeStorage: store,
 						},
 						AccessTokenStrategy:  strategy,
 						RefreshTokenStrategy: strategy,
@@ -252,9 +255,12 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				AuthorizeCodeLifespan:    time.Minute,
 			}
 			h := GenericCodeTokenEndpointHandler{
-				CodeTokenEndpointHandler: &AuthorizeExplicitGrantTokenHandler{
+				AccessRequestValidator: &AuthorizeExplicitGrantAccessRequestValidator{},
+				CodeHandler: &AuthorizeCodeHandler{
 					AuthorizeCodeStrategy: strategy,
-					AuthorizeCodeStorage:  store,
+				},
+				SessionHandler: &AuthorizeExplicitGrantSessionHandler{
+					AuthorizeCodeStorage: store,
 				},
 				TokenRevocationStorage: store,
 				Config:                 config,
@@ -668,8 +674,11 @@ func TestAuthorizeCodeTransactional_HandleTokenEndpointRequest(t *testing.T) {
 				AuthorizeCodeLifespan:    time.Minute,
 			}
 			handler := GenericCodeTokenEndpointHandler{
-				CodeTokenEndpointHandler: &AuthorizeExplicitGrantTokenHandler{
+				AccessRequestValidator: &AuthorizeExplicitGrantAccessRequestValidator{},
+				CodeHandler: &AuthorizeCodeHandler{
 					AuthorizeCodeStrategy: &strategy,
+				},
+				SessionHandler: &AuthorizeExplicitGrantSessionHandler{
 					AuthorizeCodeStorage: authorizeTransactionalStore{
 						mockTransactional,
 						mockAuthorizeStore,

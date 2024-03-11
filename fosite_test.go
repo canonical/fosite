@@ -26,7 +26,6 @@ func TestAuthorizeEndpointHandlers(t *testing.T) {
 }
 
 func TestTokenEndpointHandlers(t *testing.T) {
-	// h := &oauth2.AuthorizeExplicitGrantHandler{}
 	h := &oauth2.GenericCodeTokenEndpointHandler{}
 	hs := TokenEndpointHandlers{}
 	hs.Append(h)

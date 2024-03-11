@@ -24,9 +24,12 @@ func OAuth2AuthorizeExplicitAuthFactory(config fosite.Configurator, storage inte
 func Oauth2AuthorizeExplicitTokenFactory(config fosite.Configurator, storage interface{}, strategy interface{}) interface{} {
 	return &oauth2.AuthorizeExplicitTokenEndpointHandler{
 		GenericCodeTokenEndpointHandler: oauth2.GenericCodeTokenEndpointHandler{
-			CodeTokenEndpointHandler: &oauth2.AuthorizeExplicitGrantTokenHandler{
+			AccessRequestValidator: &oauth2.AuthorizeExplicitGrantAccessRequestValidator{},
+			CodeHandler: &oauth2.AuthorizeCodeHandler{
 				AuthorizeCodeStrategy: strategy.(oauth2.AuthorizeCodeStrategy),
-				AuthorizeCodeStorage:  storage.(oauth2.AuthorizeCodeStorage),
+			},
+			SessionHandler: &oauth2.AuthorizeExplicitGrantSessionHandler{
+				AuthorizeCodeStorage: storage.(oauth2.AuthorizeCodeStorage),
 			},
 
 			AccessTokenStrategy:    strategy.(oauth2.AccessTokenStrategy),

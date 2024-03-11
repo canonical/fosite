@@ -26,10 +26,13 @@ func RFC8628DeviceFactory(config fosite.Configurator, storage interface{}, strat
 func RFC8628DeviceAuthorizationTokenFactory(config fosite.Configurator, storage interface{}, strategy interface{}) interface{} {
 	return &rfc8628.DeviceCodeTokenEndpointHandler{
 		GenericCodeTokenEndpointHandler: oauth2.GenericCodeTokenEndpointHandler{
-			CodeTokenEndpointHandler: &rfc8628.DeviceTokenHandler{
+			AccessRequestValidator: &rfc8628.DeviceAccessRequestValidator{},
+			CodeHandler: &rfc8628.DeviceCodeHandler{
 				DeviceRateLimitStrategy: strategy.(rfc8628.DeviceRateLimitStrategy),
 				DeviceCodeStrategy:      strategy.(rfc8628.DeviceCodeStrategy),
-				DeviceCodeStorage:       storage.(rfc8628.DeviceCodeStorage),
+			},
+			SessionHandler: &rfc8628.DeviceSessionHandler{
+				DeviceCodeStorage: storage.(rfc8628.DeviceCodeStorage),
 			},
 
 			AccessTokenStrategy:    strategy.(oauth2.AccessTokenStrategy),
