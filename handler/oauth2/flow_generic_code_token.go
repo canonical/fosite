@@ -75,13 +75,14 @@ func (c *GenericCodeTokenEndpointHandler) PopulateTokenEndpointResponse(ctx cont
 		return errorsx.WithStack(fosite.ErrUnknownRequest)
 	}
 
-	code, signature, err := c.Code(ctx, requester)
-	if err != nil {
+	var code, signature string
+	var err error
+	if code, signature, err = c.Code(ctx, requester); err != nil {
 		return err
 	}
 
-	ar, err := c.Session(ctx, requester, signature)
-	if err != nil {
+	var ar fosite.Requester
+	if ar, err = c.Session(ctx, requester, signature); err != nil {
 		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
 	}
 
@@ -97,7 +98,8 @@ func (c *GenericCodeTokenEndpointHandler) PopulateTokenEndpointResponse(ctx cont
 		requester.GrantAudience(audience)
 	}
 
-	accessToken, accessTokenSignature, err := c.AccessTokenStrategy.GenerateAccessToken(ctx, requester)
+	var accessToken, accessTokenSignature string
+	accessToken, accessTokenSignature, err = c.AccessTokenStrategy.GenerateAccessToken(ctx, requester)
 	if err != nil {
 		return errorsx.WithStack(fosite.ErrServerError.WithWrap(err).WithDebug(err.Error()))
 	}
@@ -157,20 +159,22 @@ func (c *GenericCodeTokenEndpointHandler) HandleTokenEndpointRequest(ctx context
 		return errorsx.WithStack(errorsx.WithStack(fosite.ErrUnknownRequest))
 	}
 
-	if err := c.ValidateGrantTypes(requester); err != nil {
+	var err error
+	if err = c.ValidateGrantTypes(requester); err != nil {
 		return err
 	}
 
-	code, signature, err := c.Code(ctx, requester)
-	if err != nil {
+	var code, signature string
+	if code, signature, err = c.Code(ctx, requester); err != nil {
 		return err
 	}
 
-	ar, err := c.Session(ctx, requester, signature)
-	if ar != nil && err != nil && (errors.Is(err, fosite.ErrInvalidatedAuthorizeCode) || errors.Is(err, fosite.ErrInvalidatedDeviceCode)) {
-		return c.revokeTokens(ctx, requester.GetID())
-	}
-	if err != nil {
+	var ar fosite.Requester
+	if ar, err = c.Session(ctx, requester, signature); err != nil {
+		if ar != nil && (errors.Is(err, fosite.ErrInvalidatedAuthorizeCode) || errors.Is(err, fosite.ErrInvalidatedDeviceCode)) {
+			return c.revokeTokens(ctx, requester.GetID())
+		}
+
 		return err
 	}
 

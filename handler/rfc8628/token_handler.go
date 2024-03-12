@@ -46,13 +46,13 @@ func (s DeviceSessionHandler) Session(ctx context.Context, requester fosite.Acce
 	req, err := s.DeviceCodeStorage.GetDeviceCodeSession(ctx, codeSignature, requester.GetSession())
 
 	if err != nil && errors.Is(err, fosite.ErrInvalidatedDeviceCode) {
-		if req == nil {
-			return req, fosite.ErrServerError.
-				WithHint("Misconfigured code lead to an error that prohibited the OAuth 2.0 Framework from processing this request.").
-				WithDebug("\"GetDeviceCodeSession\" must return a value for \"fosite.Requester\" when returning \"ErrInvalidatedDeviceCode\".")
+		if req != nil {
+			return req, err
 		}
 
-		return req, nil
+		return req, fosite.ErrServerError.
+			WithHint("Misconfigured code lead to an error that prohibited the OAuth 2.0 Framework from processing this request.").
+			WithDebug("\"GetDeviceCodeSession\" must return a value for \"fosite.Requester\" when returning \"ErrInvalidatedDeviceCode\".")
 	}
 
 	if err != nil && errors.Is(err, fosite.ErrNotFound) {

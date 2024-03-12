@@ -17,7 +17,7 @@ type AuthorizeCodeHandler struct {
 	AuthorizeCodeStrategy AuthorizeCodeStrategy
 }
 
-func (c AuthorizeCodeHandler) Code(ctx context.Context, requester fosite.AccessRequester) (code string, signature string, err error) {
+func (c AuthorizeCodeHandler) Code(ctx context.Context, requester fosite.AccessRequester) (code string, signature string, _ error) {
 	code = requester.GetRequestForm().Get("code")
 	signature = c.AuthorizeCodeStrategy.AuthorizeCodeSignature(ctx, code)
 	return code, signature, nil
@@ -35,13 +35,13 @@ func (s AuthorizeExplicitGrantSessionHandler) Session(ctx context.Context, reque
 	req, err := s.AuthorizeCodeStorage.GetAuthorizeCodeSession(ctx, codeSignature, requester.GetSession())
 
 	if err != nil && errors.Is(err, fosite.ErrInvalidatedAuthorizeCode) {
-		if req == nil {
-			return req, fosite.ErrServerError.
-				WithHint("Misconfigured code lead to an error that prohibited the OAuth 2.0 Framework from processing this request.").
-				WithDebug("\"GetAuthorizeCodeSession\" must return a value for \"fosite.Requester\" when returning \"ErrInvalidatedAuthorizeCode\".")
+		if req != nil {
+			return req, err
 		}
 
-		return req, err
+		return req, fosite.ErrServerError.
+			WithHint("Misconfigured code lead to an error that prohibited the OAuth 2.0 Framework from processing this request.").
+			WithDebug("\"GetAuthorizeCodeSession\" must return a value for \"fosite.Requester\" when returning \"ErrInvalidatedAuthorizeCode\".")
 	}
 
 	if err != nil && errors.Is(err, fosite.ErrNotFound) {
