@@ -72,11 +72,7 @@ func (s DeviceSessionHandler) InvalidateSession(ctx context.Context, codeSignatu
 
 type DeviceAccessRequestValidator struct{}
 
-func (v DeviceAccessRequestValidator) ValidateRequest(requester fosite.AccessRequester) bool {
-	return requester.GetGrantTypes().ExactOne(string(fosite.GrantTypeDeviceCode))
-}
-
-func (v DeviceAccessRequestValidator) ValidateClientAuth(requester fosite.AccessRequester) bool {
+func (v DeviceAccessRequestValidator) CanHandleRequest(requester fosite.AccessRequester) bool {
 	return requester.GetGrantTypes().ExactOne(string(fosite.GrantTypeDeviceCode))
 }
 

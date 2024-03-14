@@ -20,11 +20,8 @@ import (
 
 // AccessRequestValidator handles various validations in the access request handling.
 type AccessRequestValidator interface {
-	// ValidateRequest validates if the access request should be handled.
-	ValidateRequest(requester fosite.AccessRequester) bool
-
-	// ValidateClientAuth validates if the client authentication is required.
-	ValidateClientAuth(requester fosite.AccessRequester) bool
+	// CanHandleRequest validates if the access request should be handled.
+	CanHandleRequest(requester fosite.AccessRequester) bool
 
 	// ValidateGrantTypes validates the grant types in the access request.
 	ValidateGrantTypes(requester fosite.AccessRequester) error
@@ -217,11 +214,11 @@ func (c *GenericCodeTokenEndpointHandler) HandleTokenEndpointRequest(ctx context
 }
 
 func (c *GenericCodeTokenEndpointHandler) CanSkipClientAuth(ctx context.Context, requester fosite.AccessRequester) bool {
-	return c.ValidateClientAuth(requester)
+	return false
 }
 
 func (c *GenericCodeTokenEndpointHandler) CanHandleTokenEndpointRequest(ctx context.Context, requester fosite.AccessRequester) bool {
-	return c.ValidateRequest(requester)
+	return c.CanHandleRequest(requester)
 }
 
 func (c *GenericCodeTokenEndpointHandler) canIssueRefreshToken(ctx context.Context, requester fosite.Requester) bool {

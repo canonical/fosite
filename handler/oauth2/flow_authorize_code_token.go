@@ -17,9 +17,9 @@ type AuthorizeCodeHandler struct {
 	AuthorizeCodeStrategy AuthorizeCodeStrategy
 }
 
-func (c AuthorizeCodeHandler) Code(ctx context.Context, requester fosite.AccessRequester) (code string, signature string, _ error) {
-	code = requester.GetRequestForm().Get("code")
-	signature = c.AuthorizeCodeStrategy.AuthorizeCodeSignature(ctx, code)
+func (c AuthorizeCodeHandler) Code(ctx context.Context, requester fosite.AccessRequester) (string, string, error) {
+	code := requester.GetRequestForm().Get("code")
+	signature := c.AuthorizeCodeStrategy.AuthorizeCodeSignature(ctx, code)
 	return code, signature, nil
 }
 
@@ -61,12 +61,8 @@ func (s AuthorizeExplicitGrantSessionHandler) InvalidateSession(ctx context.Cont
 
 type AuthorizeExplicitGrantAccessRequestValidator struct{}
 
-func (v AuthorizeExplicitGrantAccessRequestValidator) ValidateRequest(requester fosite.AccessRequester) bool {
+func (v AuthorizeExplicitGrantAccessRequestValidator) CanHandleRequest(requester fosite.AccessRequester) bool {
 	return requester.GetGrantTypes().ExactOne("authorization_code")
-}
-
-func (v AuthorizeExplicitGrantAccessRequestValidator) ValidateClientAuth(requester fosite.AccessRequester) bool {
-	return false
 }
 
 func (v AuthorizeExplicitGrantAccessRequestValidator) ValidateGrantTypes(requester fosite.AccessRequester) error {

@@ -217,7 +217,7 @@ func runDeviceFlowAccessTokenTest(t *testing.T, strategy interface{}) {
 			},
 			err: true,
 			check: func(t *testing.T, token *goauth.Token, err error) {
-				assert.ErrorContains(t, err, "unauthorized_client")
+				assert.ErrorContains(t, err, "invalid_client")
 			},
 			cleanUp: func() {
 				oauthClient.ClientID = "device-client"
