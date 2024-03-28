@@ -20,6 +20,8 @@ import (
 	enigma "github.com/ory/fosite/token/hmac"
 )
 
+const POLLING_RATE_LIMITING_LEEWAY = 200 * time.Millisecond
+
 // DeviceFlowSession is a fosite.Session container specific for the device flow.
 type DeviceFlowSession interface {
 	// GetBrowserFlowCompleted returns the flag indicating whether user has completed the browser flow or not.
@@ -179,13 +181,13 @@ func (h *DefaultDeviceStrategy) ShouldRateLimit(context context.Context, code st
 	if err != nil {
 		timer := new(expirationTimer)
 		timer.Counter = 1
-		timer.NotUntil = h.getExpirationTime(context, 1)
+		timer.NotUntil = h.getNotUntil(context, 1)
 		exp, err := h.serializeExpiration(timer)
 		if err != nil {
-			return false, err
+			return false, errorsx.WithStack(fosite.ErrServerError.WithHintf("Failed to serialize expiration struct %s", err))
 		}
 		// Set the expiration time as value, and use the lifespan of the device code as TTL.
-		h.RateLimiterCache.Set(keyBytes, exp, int(h.Config.GetDeviceAndUserCodeLifespan(context)))
+		h.RateLimiterCache.Set(keyBytes, exp, int(h.Config.GetDeviceAndUserCodeLifespan(context).Seconds()))
 		return false, nil
 	}
 
@@ -195,31 +197,31 @@ func (h *DefaultDeviceStrategy) ShouldRateLimit(context context.Context, code st
 	}
 
 	// The code is valid and enough time has passed since the last call.
-	if expiration.NotUntil.Before(time.Now()) {
-		expiration.NotUntil = h.getExpirationTime(context, expiration.Counter)
+	if time.Now().After(expiration.NotUntil) {
+		expiration.NotUntil = h.getNotUntil(context, expiration.Counter)
 		exp, err := h.serializeExpiration(expiration)
 		if err != nil {
-			return false, err
+			return false, errorsx.WithStack(fosite.ErrServerError.WithHintf("Failed to serialize expiration struct %s", err))
 		}
-		h.RateLimiterCache.Set(keyBytes, exp, int(h.Config.GetDeviceAndUserCodeLifespan(context)))
+		h.RateLimiterCache.Set(keyBytes, exp, int(h.Config.GetDeviceAndUserCodeLifespan(context).Seconds()))
 		return false, nil
 	}
 
 	// The token calls were made too fast, we need to double the interval period
-	expiration.NotUntil = h.getExpirationTime(context, expiration.Counter+1)
+	expiration.NotUntil = h.getNotUntil(context, expiration.Counter+1)
 	expiration.Counter += 1
 	exp, err := h.serializeExpiration(expiration)
 	if err != nil {
-		return false, err
+		return false, errorsx.WithStack(fosite.ErrServerError.WithHintf("Failed to serialize expiration struct %s", err))
 	}
-	h.RateLimiterCache.Set(keyBytes, exp, int(h.Config.GetDeviceAndUserCodeLifespan(context)))
+	h.RateLimiterCache.Set(keyBytes, exp, int(h.Config.GetDeviceAndUserCodeLifespan(context).Seconds()))
 
 	return true, nil
 }
 
-func (h *DefaultDeviceStrategy) getExpirationTime(context context.Context, multiplier int) time.Time {
+func (h *DefaultDeviceStrategy) getNotUntil(context context.Context, multiplier int) time.Time {
 	duration := h.Config.GetDeviceAuthTokenPollingInterval(context)
-	expiration := time.Now().Add(duration * time.Duration(multiplier))
+	expiration := time.Now().Add(duration * time.Duration(multiplier)).Add(-POLLING_RATE_LIMITING_LEEWAY)
 	return expiration
 }
 
