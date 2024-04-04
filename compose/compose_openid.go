@@ -88,8 +88,7 @@ func OpenIDConnectDeviceFactory(config fosite.Configurator, storage interface{},
 		IDTokenHandleHelper: &openid.IDTokenHandleHelper{
 			IDTokenStrategy: strategy.(openid.OpenIDConnectTokenStrategy),
 		},
-		OpenIDConnectRequestValidator: openid.NewOpenIDConnectRequestValidator(strategy.(jwt.Signer), config),
-		DeviceCodeStrategy:            strategy.(rfc8628.DeviceCodeStrategy),
-		Config:                        config,
+		DeviceCodeStrategy: strategy.(rfc8628.DeviceCodeStrategy),
+		Config:             config,
 	}
 }

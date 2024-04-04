@@ -27,7 +27,9 @@ import (
 )
 
 func TestDeviceToken_HandleTokenEndpointRequest(t *testing.T) {
-	h := &OpenIDConnectExplicitHandler{Config: &fosite.Config{}}
+	h := OpenIDConnectDeviceHandler{
+		Config: &fosite.Config{},
+	}
 	areq := fosite.NewAccessRequest(nil)
 	areq.Client = &fosite.DefaultClient{
 		ResponseTypes: fosite.Arguments{"code"},
@@ -55,8 +57,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 	}
 
 	h := OpenIDConnectDeviceHandler{
-		OpenIDConnectRequestStorage:   store,
-		OpenIDConnectRequestValidator: NewOpenIDConnectRequestValidator(signer, config),
+		OpenIDConnectRequestStorage: store,
 		DeviceCodeStrategy: &rfc8628.DefaultDeviceStrategy{
 			Enigma:           &hmac.HMACStrategy{Config: &fosite.Config{GlobalSecret: []byte("foobar")}},
 			RateLimiterCache: freecache.NewCache(1024 * 1024),

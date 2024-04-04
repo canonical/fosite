@@ -14,9 +14,8 @@ import (
 
 // OpenIDConnectDeviceHandler a response handler for the Device Authorization Grant with OpenID Connect identity layer
 type OpenIDConnectDeviceHandler struct {
-	OpenIDConnectRequestStorage   OpenIDConnectRequestStorage
-	OpenIDConnectRequestValidator *OpenIDConnectRequestValidator
-	DeviceCodeStrategy            rfc8628.DeviceCodeStrategy
+	OpenIDConnectRequestStorage OpenIDConnectRequestStorage
+	DeviceCodeStrategy          rfc8628.DeviceCodeStrategy
 
 	Config interface {
 		fosite.IDTokenLifespanProvider
@@ -36,10 +35,6 @@ func (c *OpenIDConnectDeviceHandler) HandleDeviceEndpointRequest(ctx context.Con
 
 	if len(resp.GetDeviceCode()) == 0 {
 		return errorsx.WithStack(fosite.ErrMisconfiguration.WithDebug("The device code has not been issued yet, indicating a broken code configuration."))
-	}
-
-	if err := c.OpenIDConnectRequestValidator.ValidatePrompt(ctx, dar); err != nil {
-		return err
 	}
 
 	signature, err := c.DeviceCodeStrategy.DeviceCodeSignature(ctx, resp.GetDeviceCode())
