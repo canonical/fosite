@@ -53,14 +53,14 @@ func runDeviceFlowTest(t *testing.T) {
 		{
 			description: "should fail with invalid_grant",
 			setup: func() {
-				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{string(fosite.GrantTypeAuthorizationCode)}
+				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{"authorization_code"}
 			},
 			err: true,
 			check: func(t *testing.T, token *goauth.DeviceAuthResponse, err error) {
 				assert.ErrorContains(t, err, "invalid_grant")
 			},
 			cleanUp: func() {
-				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{string(fosite.GrantTypeDeviceCode)}
+				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{"urn:ietf:params:oauth:grant-type:device_code"}
 			},
 		},
 		{
@@ -167,14 +167,14 @@ func runDeviceFlowAccessTokenTest(t *testing.T) {
 		{
 			description: "should fail with unauthorized client",
 			setup: func() {
-				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{string(fosite.GrantTypeAuthorizationCode)}
+				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{"authorization_code"}
 			},
 			params: []goauth.AuthCodeOption{},
 			check: func(t *testing.T, token *goauth.Token, err error) {
 				assert.ErrorContains(t, err, "unauthorized_client")
 			},
 			cleanUp: func() {
-				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{string(fosite.GrantTypeDeviceCode)}
+				fositeStore.Clients["device-client"].(*fosite.DefaultClient).GrantTypes = []string{"urn:ietf:params:oauth:grant-type:device_code"}
 			},
 		},
 		{

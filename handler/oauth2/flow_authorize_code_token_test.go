@@ -39,10 +39,10 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 				{
 					description: "should fail because not responsible for handling the request",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeImplicit)},
+						GrantTypes: fosite.Arguments{"implicit"},
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
-								GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: fosite.Arguments{"authorization_code"},
 							},
 							Session:     &fosite.DefaultSession{},
 							RequestedAt: time.Now().UTC(),
@@ -53,11 +53,11 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 				{
 					description: "should fail because authorization code cannot be retrieved",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Form: url.Values{},
 							Client: &fosite.DefaultClient{
-								GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: fosite.Arguments{"authorization_code"},
 							},
 							Session:     &fosite.DefaultSession{},
 							RequestedAt: time.Now().UTC(),
@@ -73,12 +73,12 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 				{
 					description: "should pass with offline scope and refresh token grant type",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Form: url.Values{},
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode), string(fosite.GrantTypeRefreshToken)},
+								GrantTypes: fosite.Arguments{"authorization_code", "refresh_token"},
 							},
 							Session:     &fosite.DefaultSession{},
 							RequestedAt: time.Now().UTC(),
@@ -88,7 +88,7 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							RequestedScope: fosite.Arguments{"foo", "bar", "offline"},
 							GrantedScope:   fosite.Arguments{"foo", "offline"},
@@ -114,12 +114,12 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 				{
 					description: "should pass with refresh token grant type",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Form: url.Values{},
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode), string(fosite.GrantTypeRefreshToken)},
+								GrantTypes: fosite.Arguments{"authorization_code", "refresh_token"},
 							},
 							Session:     &fosite.DefaultSession{},
 							RequestedAt: time.Now().UTC(),
@@ -129,7 +129,7 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							RequestedScope: fosite.Arguments{"foo", "bar"},
 							GrantedScope:   fosite.Arguments{"foo"},
@@ -156,7 +156,7 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 				{
 					description: "pass and response should not have refresh token",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Form: url.Values{},
 							Client: &fosite.DefaultClient{
@@ -171,7 +171,7 @@ func TestAuthorizeCode_PopulateTokenEndpointResponse(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeDeviceCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							RequestedScope: fosite.Arguments{"foo", "bar"},
 							GrantedScope:   fosite.Arguments{"foo"},
@@ -274,11 +274,11 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				{
 					description: "should fail because not responsible for handling the request",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeImplicit)},
+						GrantTypes: fosite.Arguments{"implicit"},
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:        url.Values{"redirect_uri": []string{"request-redir"}},
 							Session:     &fosite.DefaultSession{},
@@ -306,11 +306,11 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				{
 					description: "should fail because authorization code cannot be retrieved",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:        url.Values{"redirect_uri": []string{"request-redir"}},
 							Session:     &fosite.DefaultSession{},
@@ -327,7 +327,7 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				{
 					description: "should fail because authorization code is expired",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Form: url.Values{
 								"code":         {"foo.bar"},
@@ -335,7 +335,7 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 							},
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Session:     &fosite.DefaultSession{},
 							RequestedAt: time.Now().UTC(),
@@ -345,7 +345,7 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:           url.Values{"redirect_uri": []string{"request-redir"}},
 							RequestedScope: fosite.Arguments{"foo"},
@@ -370,11 +370,11 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				{
 					description: "should fail because client mismatch",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:        url.Values{"redirect_uri": []string{"request-redir"}},
 							Session:     &fosite.DefaultSession{},
@@ -385,7 +385,7 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "bar",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:           url.Values{"redirect_uri": []string{"request-redir"}},
 							RequestedScope: fosite.Arguments{"foo"},
@@ -409,11 +409,11 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				{
 					description: "should fail because redirect uri was set during /authorize call, but not in /token call",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:        url.Values{},
 							Session:     &fosite.DefaultSession{},
@@ -424,7 +424,7 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:           url.Values{"redirect_uri": []string{"request-redir"}},
 							RequestedScope: fosite.Arguments{"foo"},
@@ -448,11 +448,11 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				{
 					description: "should pass",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:        url.Values{"redirect_uri": []string{"request-redir"}},
 							Session:     &fosite.DefaultSession{},
@@ -463,7 +463,7 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:           url.Values{"redirect_uri": []string{"request-redir"}},
 							RequestedScope: fosite.Arguments{"foo"},
@@ -483,12 +483,12 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 				{
 					description: "should fail because code has been used already",
 					areq: &fosite.AccessRequest{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 						Request: fosite.Request{
 							Form: url.Values{"redirect_uri": []string{"request-redir"}},
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: fosite.Arguments{"authorization_code"},
 							},
 							Session:     &fosite.DefaultSession{},
 							RequestedAt: time.Now().UTC(),
@@ -498,7 +498,7 @@ func TestAuthorizeCode_HandleTokenEndpointRequest(t *testing.T) {
 						Request: fosite.Request{
 							Client: &fosite.DefaultClient{
 								ID:         "foo",
-								GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+								GrantTypes: []string{"authorization_code"},
 							},
 							Form:           url.Values{"redirect_uri": []string{"request-redir"}},
 							RequestedScope: fosite.Arguments{"foo"},
@@ -552,7 +552,7 @@ func TestAuthorizeCodeTransactional_HandleTokenEndpointRequest(t *testing.T) {
 		Request: fosite.Request{
 			Client: &fosite.DefaultClient{
 				ID:         "foo",
-				GrantTypes: []string{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: []string{"authorization_code"},
 			},
 			RequestedScope: fosite.Arguments{"foo", "offline"},
 			GrantedScope:   fosite.Arguments{"foo", "offline"},
@@ -562,10 +562,10 @@ func TestAuthorizeCodeTransactional_HandleTokenEndpointRequest(t *testing.T) {
 	}
 
 	areq := &fosite.AccessRequest{
-		GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+		GrantTypes: fosite.Arguments{"authorization_code"},
 		Request: fosite.Request{
 			Client: &fosite.DefaultClient{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode), string(fosite.GrantTypeRefreshToken)},
+				GrantTypes: fosite.Arguments{"authorization_code", "refresh_token"},
 			},
 			Session:     &fosite.DefaultSession{},
 			RequestedAt: time.Now().UTC(),

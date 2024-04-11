@@ -81,7 +81,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 
 	client := &fosite.DefaultClient{
 		ID:         "foo",
-		GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+		GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 	}
 
 	testCases := []struct {
@@ -95,7 +95,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should fail because the grant type is invalid",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+				GrantTypes: fosite.Arguments{"authorization_code"},
 				Request: fosite.Request{
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
@@ -107,7 +107,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should fail because session not found",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
@@ -122,7 +122,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should fail because session lookup fails",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
@@ -136,7 +136,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should fail because auth request grant scope is invalid",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
@@ -156,10 +156,10 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should fail because auth request's client grant type is invalid",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
 					Client: &fosite.DefaultClient{
-						GrantTypes: fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: fosite.Arguments{"authorization_code"},
 					},
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
@@ -179,7 +179,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should fail because auth request is missing session",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
 					Client:  client,
 					Form:    url.Values{"device_code": []string{"device_code"}},
@@ -199,7 +199,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should fail because auth request session is missing subject claims",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
 					Client:  client,
 					Form:    url.Values{"device_code": []string{"device_code"}},
@@ -220,7 +220,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 		{
 			description: "should pass",
 			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
 					Client:  client,
 					Form:    url.Values{"device_code": []string{"device_code"}},

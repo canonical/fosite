@@ -64,7 +64,7 @@ func TestDeviceAuth_HandleDeviceEndpointRequest(t *testing.T) {
 
 	client := &fosite.DefaultClient{
 		ID:         "foo",
-		GrantTypes: fosite.Arguments{string(fosite.GrantTypeDeviceCode)},
+		GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 	}
 
 	testCases := []struct {
@@ -88,7 +88,7 @@ func TestDeviceAuth_HandleDeviceEndpointRequest(t *testing.T) {
 				Request: fosite.Request{
 					GrantedScope: fosite.Arguments{"openid", "email"},
 					Client: &fosite.DefaultClient{
-						GrantTypes: []string{string(fosite.GrantTypeAuthorizationCode)},
+						GrantTypes: []string{"authorization_code"},
 					},
 				},
 			},
