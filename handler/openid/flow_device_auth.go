@@ -25,7 +25,7 @@ type OpenIDConnectDeviceHandler struct {
 }
 
 func (c *OpenIDConnectDeviceHandler) HandleDeviceEndpointRequest(ctx context.Context, dar fosite.DeviceRequester, resp fosite.DeviceResponder) error {
-	if !(dar.GetGrantedScopes().Has("openid")) {
+	if !(dar.GetRequestedScopes().Has("openid")) {
 		return nil
 	}
 

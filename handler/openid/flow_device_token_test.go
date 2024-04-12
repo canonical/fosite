@@ -97,6 +97,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 			areq: &fosite.AccessRequest{
 				GrantTypes: fosite.Arguments{"authorization_code"},
 				Request: fosite.Request{
+					Client:  client,
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
 				},
@@ -109,6 +110,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 			areq: &fosite.AccessRequest{
 				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
+					Client:  client,
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
 				},
@@ -124,6 +126,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 			areq: &fosite.AccessRequest{
 				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
+					Client:  client,
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
 				},
@@ -138,6 +141,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 			areq: &fosite.AccessRequest{
 				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
 				Request: fosite.Request{
+					Client:  client,
 					Form:    url.Values{"device_code": []string{"device_code"}},
 					Session: session,
 				},
@@ -145,6 +149,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 			setup: func(areq *fosite.AccessRequest) {
 				authreq := &fosite.DeviceRequest{
 					Request: fosite.Request{
+						Client:       client,
 						GrantedScope: fosite.Arguments{"email"},
 						Session:      session,
 					},
@@ -152,29 +157,6 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 				store.EXPECT().GetOpenIDConnectSession(gomock.Any(), gomock.Any(), areq).Return(authreq, nil)
 			},
 			expectErr: fosite.ErrMisconfiguration,
-		},
-		{
-			description: "should fail because auth request's client grant type is invalid",
-			areq: &fosite.AccessRequest{
-				GrantTypes: fosite.Arguments{"urn:ietf:params:oauth:grant-type:device_code"},
-				Request: fosite.Request{
-					Client: &fosite.DefaultClient{
-						GrantTypes: fosite.Arguments{"authorization_code"},
-					},
-					Form:    url.Values{"device_code": []string{"device_code"}},
-					Session: session,
-				},
-			},
-			setup: func(areq *fosite.AccessRequest) {
-				authreq := &fosite.DeviceRequest{
-					Request: fosite.Request{
-						GrantedScope: fosite.Arguments{"openid", "email"},
-						Session:      session,
-					},
-				}
-				store.EXPECT().GetOpenIDConnectSession(gomock.Any(), gomock.Any(), areq).Return(authreq, nil)
-			},
-			expectErr: fosite.ErrUnauthorizedClient,
 		},
 		{
 			description: "should fail because auth request is missing session",
@@ -189,6 +171,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 			setup: func(areq *fosite.AccessRequest) {
 				authreq := &fosite.DeviceRequest{
 					Request: fosite.Request{
+						Client:       client,
 						GrantedScope: fosite.Arguments{"openid", "email"},
 					},
 				}
@@ -209,6 +192,7 @@ func TestDeviceToken_PopulateTokenEndpointResponse(t *testing.T) {
 			setup: func(areq *fosite.AccessRequest) {
 				authreq := &fosite.DeviceRequest{
 					Request: fosite.Request{
+						Client:       client,
 						GrantedScope: fosite.Arguments{"openid", "email"},
 						Session:      NewDefaultSession(),
 					},

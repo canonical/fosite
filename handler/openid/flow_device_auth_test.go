@@ -78,7 +78,7 @@ func TestDeviceAuth_HandleDeviceEndpointRequest(t *testing.T) {
 			description: "should ignore because scope openid is not set",
 			authreq: &fosite.DeviceRequest{
 				Request: fosite.Request{
-					GrantedScope: fosite.Arguments{"email"},
+					RequestedScope: fosite.Arguments{"email"},
 				},
 			},
 		},
@@ -86,7 +86,7 @@ func TestDeviceAuth_HandleDeviceEndpointRequest(t *testing.T) {
 			description: "should ignore because client grant type is invalid",
 			authreq: &fosite.DeviceRequest{
 				Request: fosite.Request{
-					GrantedScope: fosite.Arguments{"openid", "email"},
+					RequestedScope: fosite.Arguments{"openid", "email"},
 					Client: &fosite.DefaultClient{
 						GrantTypes: []string{"authorization_code"},
 					},
@@ -97,8 +97,8 @@ func TestDeviceAuth_HandleDeviceEndpointRequest(t *testing.T) {
 			description: "should fail because device code is not issued",
 			authreq: &fosite.DeviceRequest{
 				Request: fosite.Request{
-					GrantedScope: fosite.Arguments{"openid", "email"},
-					Client:       client,
+					RequestedScope: fosite.Arguments{"openid", "email"},
+					Client:         client,
 				},
 			},
 			authresp:  &fosite.DeviceResponse{},
@@ -108,9 +108,9 @@ func TestDeviceAuth_HandleDeviceEndpointRequest(t *testing.T) {
 			description: "should fail because cannot create session",
 			authreq: &fosite.DeviceRequest{
 				Request: fosite.Request{
-					GrantedScope: fosite.Arguments{"openid", "email"},
-					Client:       client,
-					Session:      session,
+					RequestedScope: fosite.Arguments{"openid", "email"},
+					Client:         client,
+					Session:        session,
 				},
 			},
 			authresp: &fosite.DeviceResponse{
@@ -128,9 +128,9 @@ func TestDeviceAuth_HandleDeviceEndpointRequest(t *testing.T) {
 			description: "should pass",
 			authreq: &fosite.DeviceRequest{
 				Request: fosite.Request{
-					GrantedScope: fosite.Arguments{"openid", "email"},
-					Client:       client,
-					Session:      session,
+					RequestedScope: fosite.Arguments{"openid", "email"},
+					Client:         client,
+					Session:        session,
 				},
 			},
 			authresp: &fosite.DeviceResponse{
