@@ -26,7 +26,7 @@ require (
 	github.com/ory/x v0.0.613
 	github.com/parnurzeal/gorequest v0.2.15
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/gjson v1.14.3
 	go.opentelemetry.io/otel/trace v1.21.0
 	golang.org/x/crypto v0.21.0
