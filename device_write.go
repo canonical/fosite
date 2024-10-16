@@ -5,6 +5,7 @@ package fosite
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 )
 
@@ -30,7 +31,8 @@ func (f *Fosite) WriteDeviceResponse(ctx context.Context, rw http.ResponseWriter
 		Interval:                responder.GetInterval(),
 	}
 
-	err := deviceResponse.ToJson(rw)
+	r, err := json.Marshal(deviceResponse)
+	rw.Write(r)
 	if err != nil {
 		http.Error(rw, ErrServerError.WithWrap(err).WithDebug(err.Error()).Error(), http.StatusInternalServerError)
 		return

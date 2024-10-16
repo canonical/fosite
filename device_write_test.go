@@ -5,6 +5,8 @@ package fosite_test
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -42,8 +44,11 @@ func TestWriteDeviceUserResponse(t *testing.T) {
 
 	assert.Equal(t, 200, rw.Code)
 
+	body, err := io.ReadAll(rw.Body)
+	require.NoError(t, err)
+
 	wroteDeviceResponse := DeviceResponse{}
-	err := wroteDeviceResponse.FromJson(rw.Body)
+	err = json.Unmarshal(body, &wroteDeviceResponse)
 	require.NoError(t, err)
 
 	assert.Equal(t, resp.GetUserCode(), wroteDeviceResponse.UserCode)

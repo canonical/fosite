@@ -4,8 +4,6 @@
 package fosite
 
 import (
-	"encoding/json"
-	"io"
 	"net/http"
 )
 
@@ -93,14 +91,4 @@ func (d *DeviceResponse) GetHeader() http.Header {
 // AddHeader adds a header to the response
 func (d *DeviceResponse) AddHeader(key, value string) {
 	d.Header.Add(key, value)
-}
-
-// FromJson populates a response's fields from a json
-func (d *DeviceResponse) FromJson(r io.Reader) error {
-	return json.NewDecoder(r).Decode(&d)
-}
-
-// ToJson writes a response as a json
-func (d *DeviceResponse) ToJson(rw io.Writer) error {
-	return json.NewEncoder(rw).Encode(&d)
 }
