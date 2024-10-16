@@ -269,7 +269,9 @@ func (c *Handler) validateTokenClaims(ctx context.Context, claims jwt.Claims, ke
 	} else {
 		issuedDate = time.Now()
 	}
-	if claims.Expiry.Time().Sub(issuedDate) > c.Config.GetJWTMaxDuration(ctx) {
+	b := c.Config.GetJWTMaxDuration(ctx)
+	a := claims.Expiry.Time().Sub(issuedDate)
+	if a > b {
 		return errorsx.WithStack(fosite.ErrInvalidGrant.
 			WithHintf(
 				"The JWT in \"assertion\" request parameter contains an \"exp\" (expiration time) claim with value \"%s\" that is unreasonably far in the future, considering token issued at \"%s\".",
