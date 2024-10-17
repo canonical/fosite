@@ -8,7 +8,6 @@ replace github.com/gorilla/sessions => github.com/gorilla/sessions v1.2.1
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
-	github.com/coocood/freecache v1.2.4
 	github.com/cristalhq/jwt/v4 v4.0.2
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/go-jose/go-jose/v3 v3.0.3
@@ -23,7 +22,7 @@ require (
 	github.com/oleiade/reflections v1.0.1
 	github.com/ory/go-acc v0.2.9-0.20230103102148-6b1c9a70dbbe
 	github.com/ory/go-convenience v0.1.0
-	github.com/ory/x v0.0.613
+	github.com/ory/x v0.0.610
 	github.com/parnurzeal/gorequest v0.2.15
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
@@ -97,6 +96,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-go 1.21
-
-toolchain go1.21.4
+go 1.20
