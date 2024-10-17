@@ -13,26 +13,37 @@ import (
 	. "github.com/ory/fosite"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/par"
+	"github.com/ory/fosite/handler/rfc8628"
 )
 
 func TestAuthorizeEndpointHandlers(t *testing.T) {
-	h := &oauth2.AuthorizeExplicitGrantAuthHandler{}
+	h := &oauth2.AuthorizeExplicitGrantHandler{}
 	hs := AuthorizeEndpointHandlers{}
 	hs.Append(h)
 	hs.Append(h)
-	hs.Append(&oauth2.AuthorizeExplicitGrantAuthHandler{})
+	hs.Append(&oauth2.AuthorizeExplicitGrantHandler{})
+	assert.Len(t, hs, 1)
+	assert.Equal(t, hs[0], h)
+}
+
+func TestDeviceAuthorizeEndpointHandlers(t *testing.T) {
+	h := &rfc8628.DeviceAuthHandler{}
+	hs := DeviceEndpointHandlers{}
+	hs.Append(h)
+	hs.Append(h)
+	hs.Append(&rfc8628.DeviceAuthHandler{})
 	assert.Len(t, hs, 1)
 	assert.Equal(t, hs[0], h)
 }
 
 func TestTokenEndpointHandlers(t *testing.T) {
-	h := &oauth2.GenericCodeTokenEndpointHandler{}
+	h := &oauth2.AuthorizeExplicitGrantHandler{}
 	hs := TokenEndpointHandlers{}
 	hs.Append(h)
 	hs.Append(h)
 	// do some crazy type things and make sure dupe detection works
-	var f interface{} = &oauth2.GenericCodeTokenEndpointHandler{}
-	hs.Append(&oauth2.GenericCodeTokenEndpointHandler{})
+	var f interface{} = &oauth2.AuthorizeExplicitGrantHandler{}
+	hs.Append(&oauth2.AuthorizeExplicitGrantHandler{})
 	hs.Append(f.(TokenEndpointHandler))
 	require.Len(t, hs, 1)
 	assert.Equal(t, hs[0], h)
