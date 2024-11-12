@@ -9,7 +9,6 @@ package fosite
 //go:generate go run github.com/golang/mock/mockgen -package internal -destination internal/oauth2_storage.go github.com/ory/fosite/handler/oauth2 CoreStorage
 //go:generate go run github.com/golang/mock/mockgen -package internal -destination internal/oauth2_strategy.go github.com/ory/fosite/handler/oauth2 CoreStrategy
 //go:generate go run github.com/golang/mock/mockgen -package internal -destination internal/authorize_code_storage.go github.com/ory/fosite/handler/oauth2 AuthorizeCodeStorage
-//go:generate go run github.com/golang/mock/mockgen -package internal -destination internal/device_code_storage.go github.com/ory/fosite/handler/rfc8628 DeviceCodeStorage
 //go:generate go run github.com/golang/mock/mockgen -package internal -destination internal/rfc8628_core_storage.go github.com/ory/fosite/handler/rfc8628 RFC8628CoreStorage
 //go:generate go run github.com/golang/mock/mockgen -package internal -destination internal/oauth2_auth_jwt_storage.go github.com/ory/fosite/handler/rfc7523 RFC7523KeyStorage
 //go:generate go run github.com/golang/mock/mockgen -package internal -destination internal/access_token_storage.go github.com/ory/fosite/handler/oauth2 AccessTokenStorage
